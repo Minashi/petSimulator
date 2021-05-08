@@ -1,22 +1,18 @@
-import math
 import random
 import threading
 import time
-import sys
 
 
-# ----------------------------------------------------------------------------------------------------
-# TODO
-# figure out how to have options replace whats on screen, so the game does not go down terminal
-# add more casino games
-# Add jobs
-# add more speak phrases to speak() method
-# ----------------------------------------------------------------------------------------------------
-# Information:
-# This will be a simulator of having a pet. At first there will just be basic functions.
-# No databases of saving functions will be implemented yet.
-# With this, I will use lists, functions, math logic, and a game loop.
-# ----------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------- TODO figure
+#  out how to have options replace whats on screen, so the game does not go down terminal
+#  add more casino games,
+#  Add jobs
+#  add more speak phrases to speak() method
+# get if statements in pet actions to stop returning none and printing it
+#  ---------------------------------------------------------------------------------------------------- Information:
+#  This will be a simulator of having a pet. At first there will just be basic functions. No databases of saving
+#  functions will be implemented yet. With this, I will use lists, functions, math logic, and a game loop.
+#  ----------------------------------------------------------------------------------------------------
 
 
 # Class for titleScreen
@@ -140,20 +136,32 @@ class PetStats:
         if self.location != locations[1]:
             print("You have to be at home to clean", self.name)
         else:
-            print("You're currently cleaning", myPet.name, "...")
-            time.sleep(3)
-            print("You have cleaned,", self.name, "\n", myPet.speak())
-            self.cleanliness = self.cleanliness + 10
+            if self.cleanliness < 100:
+                print("You're currently cleaning", myPet.name, "...\n")
+                time.sleep(3)
+                print("\nYou have cleaned,", self.name, "\n", myPet.speak())
+                self.cleanliness = self.cleanliness + 10
+                if self.cleanliness > 50 and 'dirty' in self.statusEffects:
+                    print(self.name, "is no longer dirty!")
+                    self.statusEffects.remove('dirty')
+            else:
+                print(self.name, "is already fully cleaned!")
 
     # Playing method
     def play(self):
         if self.location != locations[3]:
             print("You have to be at the park to play with", self.name)
         else:
-            print("You're playing with", self.name, "...")
-            time.sleep(3)
-            print("You have played with,", self.name, "\n", myPet.speak())
-            self.happiness = self.happiness + 10
+            if self.happiness < 100:
+                print("You're playing with", self.name, "...\n")
+                time.sleep(3)
+                print("\nYou have played with,", self.name, "\n", myPet.speak())
+                self.happiness = self.happiness + 10
+                if self.happiness > 50 and 'unhappy' in self.statusEffects:
+                    print(self.name, "is no longer unhappy!")
+                    self.statusEffects.remove('unhappy')
+            else:
+                print(self.name, "is tired!")
 
     # Feeding method
     def feed(self):
@@ -165,11 +173,14 @@ class PetStats:
                     print("You don't have any food...\nYou can buy some from the store.")
                 else:
                     self.food -= 1
-                    print("You're currently feeding", self.name, "...")
+                    print("You're currently feeding", self.name, "...\n")
                     time.sleep(3)
-                    print("You have fed,", self.name, '\n')
+                    print("\nYou have fed,", self.name, '\n')
                     print("You still have", self.food, "food left.", "\n", myPet.speak())
                     self.hunger = self.hunger + 10
+                    if self.hunger > 50 and 'hungry' in self.statusEffects:
+                        print(self.name, "is no longer hungry!")
+                        self.statusEffects.remove('hungry')
             else:
                 print(self.name, "is full.")
 
@@ -180,11 +191,14 @@ class PetStats:
                 print("You don't have any water...\nYou can buy some from the store.")
             else:
                 self.water -= 1
-                print("You're currently giving", self.name, "water...")
+                print("You're currently giving", self.name, "water...\n")
                 time.sleep(3)
-                print("You have gave,", self.name, "water.")
+                print("\nYou have gave,", self.name, "water.\n")
                 print("You still have", self.water, "water left.", "\n", myPet.speak())
                 self.thirst = self.thirst + 10
+                if self.thirst > 50 and 'thirsty' in self.statusEffects:
+                    print(self.name, "is no longer thirsty!")
+                    self.statusEffects.remove('thirsty')
         else:
             print(self.name, "is full.")
 
@@ -273,7 +287,7 @@ class PetStats:
                 else:
                     amount = int(amount)
                     cost = amount * 5
-                    while amount < 0 or self.currency < cost or amount != 0:
+                    while amount < 0 or self.currency < cost or amount == 0:
                         print("Sorry! You don't have enough money for that...\n")
                         print("How much water do you want to buy?")
                         amount = int(input(">"))
@@ -300,7 +314,7 @@ class PetStats:
                 else:
                     amount = int(amount)
                     cost = amount * 5
-                    while amount < 0 or self.currency < cost or amount != 0:
+                    while amount < 0 or self.currency < cost or amount == 0:
                         print("Sorry! You don't have enough money for that...\n")
                         print("How much food do you want to buy?")
                         amount = int(input(">"))
@@ -477,7 +491,7 @@ def prompt():
 
 def statsThread():
     while True:
-        time.sleep(60)
+        time.sleep(120)
         myPet.statDecrease()
         myPet.status()
     else:
