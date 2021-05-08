@@ -1,6 +1,7 @@
 import random
 import threading
 import time
+import sys
 
 
 # ---------------------------------------------------------------------------------------------------- TODO figure
@@ -8,7 +9,7 @@ import time
 #  add more casino games,
 #  Add jobs
 #  add more speak phrases to speak() method
-# get if statements in pet actions to stop returning none and printing it
+#  implimend death
 #  ---------------------------------------------------------------------------------------------------- Information:
 #  This will be a simulator of having a pet. At first there will just be basic functions. No databases of saving
 #  functions will be implemented yet. With this, I will use lists, functions, math logic, and a game loop.
@@ -62,11 +63,13 @@ class PetStats:
     # Leave game method
     def leaveGame(self):
         global leave
+        global isExiting
         print("\nAre you sure you want to leave?", self.name, "will miss you! 'Yes/No'")
         action = input()
         if action.lower() == 'yes':
             leave = False
-            return leave
+            isExiting = True
+            return leave, isExiting
         else:
             return leave
 
@@ -79,6 +82,9 @@ class PetStats:
             print(random.choice(dogSpeak))
         elif self.breed == petTypes[1]:
             print(random.choice(catSpeak))
+
+    def age(self):
+        self.age += 1
 
     def statDecrease(self):
         self.cleanliness -= 10
@@ -134,32 +140,34 @@ class PetStats:
     # Cleaning method
     def clean(self):
         if self.location != locations[1]:
-            print("You have to be at home to clean", self.name)
+            return "You have to be at home to clean", self.name
         else:
             if self.cleanliness < 100:
                 print("You're currently cleaning", myPet.name, "...\n")
                 time.sleep(3)
-                print("\nYou have cleaned,", self.name, "\n", myPet.speak())
                 self.cleanliness = self.cleanliness + 10
+                myPet.speak()
+                return "\nYou have cleaned,", self.name, "\n"
                 if self.cleanliness > 50 and 'dirty' in self.statusEffects:
-                    print(self.name, "is no longer dirty!")
                     self.statusEffects.remove('dirty')
+                    return self.name, " is no longer dirty!"
             else:
                 print(self.name, "is already fully cleaned!")
 
     # Playing method
     def play(self):
         if self.location != locations[3]:
-            print("You have to be at the park to play with", self.name)
+            return "You have to be at the park to play with", self.name
         else:
             if self.happiness < 100:
                 print("You're playing with", self.name, "...\n")
                 time.sleep(3)
-                print("\nYou have played with,", self.name, "\n", myPet.speak())
                 self.happiness = self.happiness + 10
+                myPet.speak()
+                return "\nYou have played with,", self.name, "\n"
                 if self.happiness > 50 and 'unhappy' in self.statusEffects:
-                    print(self.name, "is no longer unhappy!")
                     self.statusEffects.remove('unhappy')
+                    return self.name, " is no longer unhappy!"
             else:
                 print(self.name, "is tired!")
 
@@ -170,17 +178,19 @@ class PetStats:
         else:
             if self.hunger < 100:
                 if self.food <= 0:
-                    print("You don't have any food...\nYou can buy some from the store.")
+                    return "You don't have any food...\nYou can buy some from the store."
                 else:
                     self.food -= 1
                     print("You're currently feeding", self.name, "...\n")
                     time.sleep(3)
                     print("\nYou have fed,", self.name, '\n')
-                    print("You still have", self.food, "food left.", "\n", myPet.speak())
                     self.hunger = self.hunger + 10
                     if self.hunger > 50 and 'hungry' in self.statusEffects:
-                        print(self.name, "is no longer hungry!")
                         self.statusEffects.remove('hungry')
+                        return self.name, " is no longer hungry!"
+                    else:
+                        myPet.speak()
+                        return "You still have", self.food, "food left.", "\n"
             else:
                 print(self.name, "is full.")
 
@@ -188,17 +198,19 @@ class PetStats:
     def giveWater(self):
         if self.thirst < 100:
             if self.water <= 0:
-                print("You don't have any water...\nYou can buy some from the store.")
+                return "You don't have any water...\nYou can buy some from the store."
             else:
                 self.water -= 1
                 print("You're currently giving", self.name, "water...\n")
                 time.sleep(3)
                 print("\nYou have gave,", self.name, "water.\n")
-                print("You still have", self.water, "water left.", "\n", myPet.speak())
                 self.thirst = self.thirst + 10
                 if self.thirst > 50 and 'thirsty' in self.statusEffects:
-                    print(self.name, "is no longer thirsty!")
                     self.statusEffects.remove('thirsty')
+                    return self.name, " is no longer thirsty!"
+                else:
+                    myPet.speak()
+                    return "You still have", self.water, "water left.", "\n"
         else:
             print(self.name, "is full.")
 
@@ -411,6 +423,7 @@ t1 = Title_Screen()
 myPet = None
 leave = True
 restart = False
+isExiting = False
 petTypes = ['dog', 'cat']
 actions = ['examine', 'give food', 'give water', 'play', 'clean']
 locations = ['streets', 'home', 'store', 'park', 'casino']
@@ -490,10 +503,21 @@ def prompt():
 
 
 def statsThread():
+    timeStart = time.time()
+    timeAge = time.time()
     while True:
-        time.sleep(120)
-        myPet.statDecrease()
-        myPet.status()
+        if timeStart - time.time() < -120:
+            myPet.statDecrease()
+            timeStart = time.time()
+            myPet.status()
+
+        if timeAge - time.time() < -600:
+            myPet.age()
+            timeAge = time.time()
+
+        if isExiting:
+            print("Thread is exiting...")
+            sys.exit()
     else:
         return 'thread error'
 
